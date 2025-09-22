@@ -1,6 +1,7 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
-import Home from './pages/HomePage/HomePage';
-import styles from './styles/App.module.css';
+/*
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import Home from "./pages/HomePage/HomePage";
+import styles from "./styles/App.module.css";
 
 function App() {
   return (
@@ -9,7 +10,9 @@ function App() {
         <header className={styles.appHeader}>
           <img src="/project-logo.png" alt="Logo" className={styles.appLogo} />
           <nav className={styles.appNav}>
-            <Link to="/" className={styles.appLink}>Home</Link>
+            <Link to="/" className={styles.appLink}>
+              Home
+            </Link>
           </nav>
         </header>
         <main className={styles.main}>
@@ -25,4 +28,25 @@ function App() {
   );
 }
 
+export default App;
+*/
+
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./pages/HomePage/HomePage";
+import Navbar from "./components/Navbar";
+
+function App() {
+  return (
+    <div className="App">
+      <BrowserRouter>
+        <Navbar />
+        <div className="pages">
+          <Routes>
+            <Route path="/" element={<Home />} />
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </div>
+  );
+}
 export default App;

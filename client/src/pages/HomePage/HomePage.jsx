@@ -1,13 +1,29 @@
-import React from 'react';
-import styles from './Home.module.css';
-import RandomDuck from '../../components/RandomDuck/RandomDuck';
-
+import styles from "./Home.module.css";
+import { useEffect } from "react";
+import HouseDetails from "../../components/HouseDetails";
+import HouseForm from "../../components/HouseForm";
+import { useHouseContext } from "../../hooks/useHouseContext";
 
 const Home = () => {
+  const { houses = [], dispatch } = useHouseContext();
+  useEffect(() => {
+    const fetchHouses = async () => {
+      const response = await fetch("/api/House");
+      const json = await response.json();
+
+      if (response.ok) {
+        dispatch({ type: "SET_HOUSES", payload: json });
+      }
+    };
+    fetchHouses();
+  }, [dispatch]);
   return (
-    <div className={styles.home}>
-      <h1 className={styles.headline}>Duck It</h1>
-      <RandomDuck />
+    <div className="home">
+      <div className="houses">
+        {houses &&
+          houses.map((house) => <HouseDetails house={house} key={house._id} />)}
+      </div>
+      <HouseForm />
     </div>
   );
 };

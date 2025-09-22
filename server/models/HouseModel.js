@@ -27,6 +27,21 @@ const houseSchema = new Schema(
       required: true,
     },
 
+    starting_date: {
+      type: Date,
+      required: true,
+    },
+    ending_date: {
+      type: Date,
+      required: true,
+      validate: {
+        validator(value) {
+          return !this.starting_date || value >= this.starting_date;
+        },
+        message: "ending date must be on or after starting date",
+      },
+    },
+
     images: {
       type: [String],
       default: [],
