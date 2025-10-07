@@ -47,6 +47,10 @@ const houseSchema = new Schema(
       default: [],
       required: true,
     },
+    user_id: {
+      type: String,
+      require: true,
+    },
   },
   {
     timestamps: true,

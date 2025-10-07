@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useHouseContext } from "../hooks/useHouseContext";
+import { useAuthContext } from "../hooks/useAuthContext";
 
 const GENDER_OPTIONS = ["female", "male", "non-binary", "any"];
 
 const HouseForm = () => {
+  const { user } = useAuthContext();
   const { dispatch } = useHouseContext();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -17,6 +19,10 @@ const HouseForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!user) {
+      setError("You must me logged in");
+      return;
+    }
 
     // Turn "url1, url2" into ["url1","url2"]
     const images = imagesInput
@@ -37,8 +43,12 @@ const HouseForm = () => {
     try {
       const response = await fetch("/api/House", {
         method: "POST",
-        headers: { "Content-Type": "application/json" }, // FIX: correct header
         body: JSON.stringify(house),
+
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        }, // FIX: correct header
       });
 
       const json = await response.json().catch(() => ({}));

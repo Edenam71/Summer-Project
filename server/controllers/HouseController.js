@@ -1,137 +1,3 @@
-/*
-//const { createElement } = require("react");
-const House = require("../models/HouseModel");
-const mongoose = require("mongoose");
-
-//get a single house
-
-const getHouse = async (req, res) => {
-  const { id } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(404).json({ error: "No such house" });
-  }
-
-  const house = await House.findById(id);
-  if (!house) {
-    return res.status(404).json({ error: "No such House" });
-  }
-
-  res.status(200).json(house);
-};
-
-//get all houses
-
-const getAllHouses = async (req, res) => {
-  const houses = await House.find({}).sort({ createdAt: -1 });
-  res.status(200).json(houses);
-};
-
-//create a new house
-const createHouse = async (req, res) => {
-  const {
-    title,
-    description,
-    gender,
-    age,
-    starting_date,
-    ending_date,
-    images,
-  } = req.body;
-
-  let emptyFields = [];
-
-  if (!title) {
-    emptyFields.push("title");
-  }
-  if (!description) {
-    emptyFields.push("description");
-  }
-
-  if (!gender) {
-    emptyFields.push("gender");
-  }
-  if (!age) {
-    emptyFields.push("age");
-  }
-  if (!starting_date) {
-    emptyFields.push("starting_date");
-  }
-  if (!ending_date) {
-    emptyFields.push("ending_date");
-  }
-  if (!images) {
-    emptyFields.push("images");
-  }
-  if (emptyFields.length > 0) {
-    return res
-      .status(400)
-      .json({ error: "Please fill in all the fields", emptyFields });
-  }
-
-  //add house to db
-  try {
-    const house = await House.create({
-      title,
-      description,
-      gender,
-      age,
-      starting_date,
-      ending_date,
-      images,
-    });
-    res.status(200).json(house);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
-
-//delete a house
-
-const deleteHouse = async (req, res) => {
-  const { id } = req.params;
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(404).json({ error: "No such house" });
-  }
-  const house = await House.findOneAndDelete({ _id: id });
-
-  if (!house) {
-    return res.status(404).json({ error: "Error deleting house" });
-  }
-  res.status(200).json(house);
-};
-
-//update a house
-
-const updateHouse = async (req, res) => {
-  const { id } = req.params;
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(404).json({ error: "No such house" });
-  }
-  const house = await House.findOneAndUpdate(
-    { _id: id },
-    {
-      ...req.body,
-    }
-  );
-  if (!house) {
-    return res.status(404).json({ error: "Error deleting house" });
-  }
-  res.status(200).json(house);
-};
-
-module.exports = {
-  createHouse,
-  getAllHouses,
-  getHouse,
-  deleteHouse,
-  updateHouse,
-};
-
-*/
-// controllers/HouseController.js
-// controllers/HouseController.js
-
 const mongoose = require("mongoose");
 // Adjust the path if your model file is named differently
 const House = require("../models/HouseModel");
@@ -172,6 +38,20 @@ const getAllHouses = async (_req, res) => {
   }
 };
 
+const getMyHouse = async (req, res) => {
+  try {
+    const user_id = req.user?._id;
+    if (!user_id)
+      return res.status(401).json({ error: "Authorization required" });
+
+    const houses = await House.find({ user_id }).sort({ createdAt: -1 });
+    return res.status(200).json(houses);
+  } catch (err) {
+    console.error("getMyHouse error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
+
 // GET /api/houses/:id – single
 const getHouse = async (req, res) => {
   const { id } = req.params;
@@ -190,7 +70,14 @@ const getHouse = async (req, res) => {
 // POST /api/houses – create
 const createHouse = async (req, res) => {
   try {
-    const house = await House.create(req.body); // runs schema validators
+    if (!req.user?._id) {
+      return res.status(401).json({ error: "Authorization required" });
+    }
+    const house = await House.create({
+      ...req.body, // title, description, gender, age, dates, images, etc.
+      user_id: req.user._id,
+    });
+
     return res.status(201).json(house);
   } catch (err) {
     if (err.name === "ValidationError") return sendValidationError(res, err);
@@ -207,6 +94,13 @@ const deleteHouse = async (req, res) => {
   try {
     const house = await House.findOneAndDelete({ _id: id });
     if (!house) return res.status(404).json({ error: "No such house" });
+
+    const ownerId = house.user_id?.toString?.() ?? String(house.user_id);
+    if (ownerId !== req.user._id.toString()) {
+      return res.status(403).json({ error: "Not allowed" });
+    }
+    await house.deleteOne();
+
     return res.status(200).json(house);
   } catch (err) {
     console.error("deleteHouse error:", err);
@@ -242,6 +136,7 @@ const updateHouse = async (req, res) => {
 module.exports = {
   createHouse,
   getAllHouses,
+  getMyHouse,
   getHouse,
   deleteHouse,
   updateHouse,

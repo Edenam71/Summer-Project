@@ -22,14 +22,18 @@ import ReactDOM from "react-dom/client";
 import "./styles/global.css";
 import App from "./App";
 import { HouseContextProvider } from "./context/HouseContext";
+import { AuthContextProvider } from "./context/AuthContext";
+
 import "./styles/index.css";
 
 // wrapping the HouseContextProvider this way all parts of the app have excess to house context
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <HouseContextProvider>
-      <App />
-    </HouseContextProvider>
+    <AuthContextProvider>
+      <HouseContextProvider>
+        <App />
+      </HouseContextProvider>
+    </AuthContextProvider>
   </React.StrictMode>
 );
